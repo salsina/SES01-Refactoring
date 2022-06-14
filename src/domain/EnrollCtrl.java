@@ -6,37 +6,39 @@ import java.util.Map;
 import domain.exceptions.EnrollmentRulesViolationException;
 
 public class EnrollCtrl {
+    private EnrollmentRequestParams enrollmentRequestParams;
+
 	public void enroll(Student s, List<CSE> courses) throws EnrollmentRulesViolationException {
-        Map<Term, Map<Course, Double>> transcript = s.getTranscript();
-        checkIfPreviouslyPassed(s, courses);
-        checkPrerequisiteCoursesPassingStatus(s, courses);
-        checkDuplicateEnrollments(courses);
-        checkExamConflicts(courses);
-        checkGPALimit(s, courses);
+        enrollmentRequestParams = new EnrollmentRequestParams(s, courses);
+        checkIfPreviouslyPassed();
+        checkPrerequisiteCoursesPassingStatus();
+        checkDuplicateEnrollments();
+        checkExamConflicts();
+        checkGPALimit();
         for (CSE o : courses)
 			s.takeCourse(o.getCourse(), o.getSection());
 	}
 
-    private void checkPrerequisiteCoursesPassingStatus(Student s, List<CSE> courses) throws EnrollmentRulesViolationException {
-        for (CSE o : courses) {
+    private void checkPrerequisiteCoursesPassingStatus() throws EnrollmentRulesViolationException {
+        for (CSE o : enrollmentRequestParams.getCourses()) {
             List<Course> prereqs = o.getCourse().getPrerequisites();
             for (Course pre : prereqs) {
-                if(!s.hasPassedCourse(pre))
+                if(!enrollmentRequestParams.getStudent().hasPassedCourse(pre))
                     throw new EnrollmentRulesViolationException(String.format("The student has not passed %s as a prerequisite of %s", pre.getName(), o.getCourse().getName()));
             }
         }
     }
 
-    private void checkIfPreviouslyPassed(Student s, List<CSE> courses) throws EnrollmentRulesViolationException {
-        for (CSE o : courses) {
-            if (s.hasPassedCourse(o.getCourse()))
+    private void checkIfPreviouslyPassed() throws EnrollmentRulesViolationException {
+        for (CSE o : enrollmentRequestParams.getCourses()) {
+            if (enrollmentRequestParams.getStudent().hasPassedCourse(o.getCourse()))
                 throw new EnrollmentRulesViolationException(String.format("The student has already passed %s", o.getCourse().getName()));
         }
     }
 
-    private void checkDuplicateEnrollments(List<CSE> courses) throws EnrollmentRulesViolationException {
-        for (CSE o : courses) {
-            for (CSE o2 : courses) {
+    private void checkDuplicateEnrollments() throws EnrollmentRulesViolationException {
+        for (CSE o : enrollmentRequestParams.getCourses()) {
+            for (CSE o2 : enrollmentRequestParams.getCourses()) {
                 if (o == o2)
                     continue;
                 if (o.getCourse().equals(o2.getCourse()))
@@ -45,9 +47,9 @@ public class EnrollCtrl {
         }
     }
 
-    private void checkExamConflicts(List<CSE> courses) throws EnrollmentRulesViolationException {
-        for (CSE o : courses) {
-            for (CSE o2 : courses) {
+    private void checkExamConflicts() throws EnrollmentRulesViolationException {
+        for (CSE o : enrollmentRequestParams.getCourses()) {
+            for (CSE o2 : enrollmentRequestParams.getCourses()) {
                 if (o == o2)
                     continue;
                 if (o.examTimeConflicts(o2))
@@ -56,9 +58,9 @@ public class EnrollCtrl {
 		}
     }
 
-    private void checkGPALimit(Student s, List<CSE> courses) throws EnrollmentRulesViolationException {
-        int unitsRequested = courses.stream().mapToInt(c -> c.getCourse().getUnits()).sum();
-        double gpa = s.getGpa();
+    private void checkGPALimit() throws EnrollmentRulesViolationException {
+        int unitsRequested = enrollmentRequestParams.getCourses().stream().mapToInt(c -> c.getCourse().getUnits()).sum();
+        double gpa = enrollmentRequestParams.getStudent().getGpa();
 
         if ((gpa < 12 && unitsRequested > 14) ||
                 (gpa < 16 && unitsRequested > 16) ||
