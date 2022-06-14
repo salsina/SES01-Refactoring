@@ -29,6 +29,15 @@ public class EnrollCtrl {
                 throw new EnrollmentRulesViolationException(String.format("The student has not passed %s as a prerequisite of %s", pre.getName(), o.getCourse().getName()));
             }
         }
+
+        checkDuplicateEnrollments(courses);
+        checkExamConflicts(courses);
+        checkGPALimit(s, courses);
+        for (CSE o : courses)
+			s.takeCourse(o.getCourse(), o.getSection());
+	}
+
+    private void checkDuplicateEnrollments(List<CSE> courses) throws EnrollmentRulesViolationException {
         for (CSE o : courses) {
             for (CSE o2 : courses) {
                 if (o == o2)
@@ -37,12 +46,7 @@ public class EnrollCtrl {
                     throw new EnrollmentRulesViolationException(String.format("%s is requested to be taken twice", o.getCourse().getName()));
             }
         }
-
-        checkExamConflicts(courses);
-        checkGPALimit(s, courses);
-        for (CSE o : courses)
-			s.takeCourse(o.getCourse(), o.getSection());
-	}
+    }
 
     private void checkExamConflicts(List<CSE> courses) throws EnrollmentRulesViolationException {
         for (CSE o : courses) {
