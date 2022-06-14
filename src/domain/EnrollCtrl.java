@@ -15,9 +15,13 @@ public class EnrollCtrl {
         checkDuplicateEnrollments();
         checkExamConflicts();
         checkGPALimit();
-        for (CSE o : courses)
-			s.takeCourse(o.getCourse(), o.getSection());
-	}
+        takeCourses();
+    }
+
+    private void takeCourses() {
+        for (CSE o : enrollmentRequestParams.getCourses())
+            enrollmentRequestParams.getStudent().takeCourse(o.getCourse(), o.getSection());
+    }
 
     private void checkPrerequisiteCoursesPassingStatus() throws EnrollmentRulesViolationException {
         for (CSE o : enrollmentRequestParams.getCourses()) {

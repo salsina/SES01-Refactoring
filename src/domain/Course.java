@@ -1,4 +1,6 @@
 package domain;
+import domain.exceptions.EnrollmentRulesViolationException;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -58,4 +60,13 @@ public class Course {
 		Course other = (Course)obj;
 		return id.equals(other.id);
 	}
+
+//	public boolean meetsRequirementsToTake(Student s){
+//		for (Course pre : getPrerequisites()) {
+//			if(!s.hasPassedCourse(pre))
+//				return false;
+////				throw new EnrollmentRulesViolationException(String.format("The student has not passed %s as a prerequisite of %s", pre.getName(), getName()));
+//		}
+//		return true;
+//	}
 }
