@@ -8,6 +8,19 @@ public class Student {
 	private String id;
 	private String name;
 
+	public double getGpa() {
+		double points = 0;
+		int totalUnits = 0;
+		Map<Term, Map<Course, Double>> transcript = getTranscript();
+
+		for (Map.Entry<Term, Map<Course, Double>> tr : transcript.entrySet()) {
+			points += tr.getValue().entrySet().stream().mapToDouble(r -> r.getValue() * r.getKey().getUnits()).sum();
+			totalUnits += tr.getValue().keySet().stream().mapToInt(Course::getUnits).sum();
+		}
+		double gpa = points / totalUnits;
+		return gpa;
+	}
+
 	static class CourseSection {
         CourseSection(Course course, int section) {
             this.course = course;

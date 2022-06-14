@@ -35,27 +35,19 @@ public class EnrollCtrl {
                     throw new EnrollmentRulesViolationException(String.format("%s is requested to be taken twice", o.getCourse().getName()));
             }
 		}
-        checkGPALimit(transcript, courses);
+        checkGPALimit(s, courses);
         for (CSE o : courses)
 			s.takeCourse(o.getCourse(), o.getSection());
 	}
 
-    private void checkGPALimit(Map<Term, Map<Course, Double>> transcript, List<CSE> courses) throws EnrollmentRulesViolationException {
+    private void checkGPALimit(Student s, List<CSE> courses) throws EnrollmentRulesViolationException {
         int unitsRequested = courses.stream().mapToInt(c -> c.getCourse().getUnits()).sum();
-
-        double points = 0;
-        int totalUnits = 0;
-
-        for (Map.Entry<Term, Map<Course, Double>> tr : transcript.entrySet()) {
-            points += tr.getValue().entrySet().stream().mapToDouble(r -> r.getValue() * r.getKey().getUnits()).sum();
-            totalUnits += tr.getValue().keySet().stream().mapToInt(Course::getUnits).sum();
-		}
-
-        double gpa = points / totalUnits;
+        double gpa = s.getGpa();
 
         if ((gpa < 12 && unitsRequested > 14) ||
                 (gpa < 16 && unitsRequested > 16) ||
                 (unitsRequested > 20))
             throw new EnrollmentRulesViolationException(String.format("Number of units (%d) requested does not match GPA of %f", unitsRequested, gpa));
     }
+
 }
