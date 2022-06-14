@@ -37,4 +37,8 @@ public class CSE {
 	}
 
 	public int getSection() { return section; }
+
+	boolean examTimeConflicts(CSE course){
+		return getExamTime().equals(course.getExamTime());
+	}
 }
