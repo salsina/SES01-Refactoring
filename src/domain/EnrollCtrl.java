@@ -9,7 +9,15 @@ public class EnrollCtrl {
 	public void enroll(Student s, List<CSE> courses) throws EnrollmentRulesViolationException {
         Map<Term, Map<Course, Double>> transcript = s.getTranscript();
         checkIfPreviouslyPassed(s, courses);
+        checkPrerequisiteCoursesPassingStatus(s, courses);
+        checkDuplicateEnrollments(courses);
+        checkExamConflicts(courses);
+        checkGPALimit(s, courses);
+        for (CSE o : courses)
+			s.takeCourse(o.getCourse(), o.getSection());
+	}
 
+    private void checkPrerequisiteCoursesPassingStatus(Student s, List<CSE> courses) throws EnrollmentRulesViolationException {
         for (CSE o : courses) {
             List<Course> prereqs = o.getCourse().getPrerequisites();
             for (Course pre : prereqs) {
@@ -17,13 +25,7 @@ public class EnrollCtrl {
                     throw new EnrollmentRulesViolationException(String.format("The student has not passed %s as a prerequisite of %s", pre.getName(), o.getCourse().getName()));
             }
         }
-
-        checkDuplicateEnrollments(courses);
-        checkExamConflicts(courses);
-        checkGPALimit(s, courses);
-        for (CSE o : courses)
-			s.takeCourse(o.getCourse(), o.getSection());
-	}
+    }
 
     private void checkIfPreviouslyPassed(Student s, List<CSE> courses) throws EnrollmentRulesViolationException {
         for (CSE o : courses) {
