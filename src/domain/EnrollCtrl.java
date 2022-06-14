@@ -35,23 +35,27 @@ public class EnrollCtrl {
                     throw new EnrollmentRulesViolationException(String.format("%s is requested to be taken twice", o.getCourse().getName()));
             }
 		}
-		int unitsRequested = 0;
-		for (CSE o : courses)
-			unitsRequested += o.getCourse().getUnits();
-		double points = 0;
-		int totalUnits = 0;
-        for (Map.Entry<Term, Map<Course, Double>> tr : transcript.entrySet()) {
-            for (Map.Entry<Course, Double> r : tr.getValue().entrySet()) {
-                points += r.getValue() * r.getKey().getUnits();
-                totalUnits += r.getKey().getUnits();
-            }
-		}
-		double gpa = points / totalUnits;
-		if ((gpa < 12 && unitsRequested > 14) ||
-				(gpa < 16 && unitsRequested > 16) ||
-				(unitsRequested > 20))
-			throw new EnrollmentRulesViolationException(String.format("Number of units (%d) requested does not match GPA of %f", unitsRequested, gpa));
-		for (CSE o : courses)
+        checkGPALimit(transcript, courses);
+        for (CSE o : courses)
 			s.takeCourse(o.getCourse(), o.getSection());
 	}
+
+    private void checkGPALimit(Map<Term, Map<Course, Double>> transcript, List<CSE> courses) throws EnrollmentRulesViolationException {
+        int unitsRequested = courses.stream().mapToInt(c -> c.getCourse().getUnits()).sum();
+
+        double points = 0;
+        int totalUnits = 0;
+
+        for (Map.Entry<Term, Map<Course, Double>> tr : transcript.entrySet()) {
+            points += tr.getValue().entrySet().stream().mapToDouble(r -> r.getValue() * r.getKey().getUnits()).sum();
+            totalUnits += tr.getValue().keySet().stream().mapToInt(Course::getUnits).sum();
+		}
+
+        double gpa = points / totalUnits;
+
+        if ((gpa < 12 && unitsRequested > 14) ||
+                (gpa < 16 && unitsRequested > 16) ||
+                (unitsRequested > 20))
+            throw new EnrollmentRulesViolationException(String.format("Number of units (%d) requested does not match GPA of %f", unitsRequested, gpa));
+    }
 }
