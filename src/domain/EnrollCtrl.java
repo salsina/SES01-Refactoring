@@ -8,10 +8,7 @@ import domain.exceptions.EnrollmentRulesViolationException;
 public class EnrollCtrl {
 	public void enroll(Student s, List<CSE> courses) throws EnrollmentRulesViolationException {
         Map<Term, Map<Course, Double>> transcript = s.getTranscript();
-		for (CSE o : courses) {
-            if (s.hasPassedCourse(o.getCourse()))
-                throw new EnrollmentRulesViolationException(String.format("The student has already passed %s", o.getCourse().getName()));
-        }
+        checkIfPreviouslyPassed(s, courses);
 
         for (CSE o : courses) {
             List<Course> prereqs = o.getCourse().getPrerequisites();
@@ -27,6 +24,13 @@ public class EnrollCtrl {
         for (CSE o : courses)
 			s.takeCourse(o.getCourse(), o.getSection());
 	}
+
+    private void checkIfPreviouslyPassed(Student s, List<CSE> courses) throws EnrollmentRulesViolationException {
+        for (CSE o : courses) {
+            if (s.hasPassedCourse(o.getCourse()))
+                throw new EnrollmentRulesViolationException(String.format("The student has already passed %s", o.getCourse().getName()));
+        }
+    }
 
     private void checkDuplicateEnrollments(List<CSE> courses) throws EnrollmentRulesViolationException {
         for (CSE o : courses) {
